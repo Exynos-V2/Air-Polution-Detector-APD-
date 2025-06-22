@@ -1,0 +1,8 @@
+Flask
+Flask-SocketIO
+paho-mqtt
+mysql-connector-python
+bcrypt
+joblib
+pandas
+scikit-learn

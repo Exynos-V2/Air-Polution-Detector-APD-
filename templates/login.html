@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MQTT Sensor Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        // Apply saved theme immediately to prevent flicker (same as index.html)
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h2>Login to Dashboard</h2>
+                <button id="darkModeToggle" class="dark-toggle" title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            <form id="loginForm" action="/login" method="POST">
+                <div class="form-group input-icon-group">
+                    <label for="username">Username</label>
+                    <div class="input-icon-wrapper">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                </div>
+                <div class="form-group input-icon-group">
+                    <label for="password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <span class="input-icon"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="login-button">Login</button>
+            </form>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Dark Mode Toggle (same as index.html) ---
+            const darkToggle = document.getElementById('darkModeToggle');
+            
+            function setDarkMode(enabled) {
+                document.documentElement.classList.toggle('dark-mode', enabled);
+                if (darkToggle) darkToggle.textContent = enabled ? '☀️' : '🌙';
+                localStorage.setItem('darkMode', enabled ? 'true' : 'false');
+            }
+            
+            // Load preference - this check is now primarily done by the head script
+            // We ensure consistency here and set the button icon correctly
+            const initialDarkModeState = localStorage.getItem('darkMode') === 'true';
+            if (document.documentElement.classList.contains('dark-mode') !== initialDarkModeState) {
+                // This can happen if the class was added/removed by another script or extension
+                // or if the localStorage was changed manually after page load but before this script ran.
+                // We trust the localStorage as the source of truth if there's a mismatch.
+                document.documentElement.classList.toggle('dark-mode', initialDarkModeState);
+            }
+            if (darkToggle) darkToggle.textContent = initialDarkModeState ? '☀️' : '🌙';
+
+            if (darkToggle) {
+                darkToggle.addEventListener('click', () => {
+                    setDarkMode(!document.documentElement.classList.contains('dark-mode'));
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
