@@ -7,10 +7,10 @@ An IoT-based air pollution monitoring system with AI predictions and real-time w
 ## Anggota
 
 **Kelompok 7:**
-- [Willyam Andika Putra] - [2332015]
-- [Jevintantono] - [2332017]  
-- [Hardy Setiawan] - [2332020]
-- [Ryan Fiorentino Goh] - [2332022]
+- Willyam Andika Putra - 2332015
+- Jevintantono - 2332017  
+- Hardy Setiawan - 2332020
+- Ryan Fiorentino Goh - 2332022
 
 ## Features
 
