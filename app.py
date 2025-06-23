@@ -44,6 +44,8 @@ def login_required(f):
 MQTT_BROKER = 'eclipse.xetf.my.id'
 MQTT_PORT = 1883
 MQTT_TOPIC = 'data/sensordata'
+MQTT_USERNAME = 'stressed_user'
+MQTT_PASSWORD = 'connecting'
 
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
@@ -132,7 +134,11 @@ def on_message(client, userdata, msg):
 mqtt_client = mqtt.Client(protocol=mqtt.MQTTv311)
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+mqtt_client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+try:
+    mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+except Exception as e:
+    print(f"Failed to connect to MQTT broker: {e}")
 
 # Start MQTT loop in background
 def mqtt_loop():
