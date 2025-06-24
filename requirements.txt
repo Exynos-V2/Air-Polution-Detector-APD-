@@ -6,3 +6,6 @@ bcrypt
 joblib
 pandas
 scikit-learn
+numpy
+matplotlib
+seaborn
