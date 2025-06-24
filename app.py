@@ -15,7 +15,7 @@ from flask import (Flask, flash, jsonify, redirect, render_template,
 from flask_socketio import SocketIO, emit
 
 # Import the prediction service
-from prediction_service import prediction_service
+from enhanced_prediction_service import enhanced_prediction_service
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = os.urandom(24)  # Required for session management
@@ -121,7 +121,7 @@ def on_message(client, userdata, msg):
             }
 
             # Calculate prediction
-            prediction = prediction_service.predict_co2(data)
+            prediction = enhanced_prediction_service.predict_co2(data)
 
             # Emit both sensor data and prediction to the frontend
             socketio.emit('sensor_data', {'data': data, 'prediction': prediction})
@@ -255,9 +255,9 @@ def status():
     
     # Get prediction if we have data
     prediction = None
-    if latest_mqtt_data:
+    if latest_mqtt_data and 'data' in latest_mqtt_data:
         try:
-            prediction = prediction_service.predict_co2(latest_mqtt_data)
+            prediction = enhanced_prediction_service.predict_co2(latest_mqtt_data['data'])
         except Exception as e:
             print(f"Error making prediction: {e}")
     
