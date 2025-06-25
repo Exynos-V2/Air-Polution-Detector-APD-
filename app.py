@@ -11,7 +11,11 @@ import bcrypt
 import mysql.connector
 import paho.mqtt.client as mqtt
 from flask import (Flask, flash, jsonify, redirect, render_template,
-                  request, send_from_directory, session, url_for)
+                  request, send_from_directory, session, url_for, make_response, abort)
+import os
+import json
+from datetime import datetime, timedelta
+from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 
 # Import the prediction service
@@ -19,6 +23,16 @@ from enhanced_prediction_service import enhanced_prediction_service
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = os.urandom(24)  # Required for session management
+
+# Enable CORS for all routes
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Database configuration
@@ -78,6 +92,111 @@ def login():
                 conn.close()
     
     return render_template('login.html')
+
+# API Login route for Android app
+
+@app.route('/api/history', methods=['GET'])
+@cross_origin()
+def get_logs():
+    try:
+        # Get query parameters with defaults
+        limit = int(request.args.get('limit', 100))  # Default to 100 entries
+        offset = int(request.args.get('offset', 0))
+        
+        # Date range filtering
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # Read the log file
+        log_file = os.path.join('logs', 'mqtt_log.json')
+        if not os.path.exists(log_file):
+            return jsonify({'status': 'error', 'message': 'Log file not found'}), 404
+            
+        with open(log_file, 'r') as f:
+            logs = json.load(f)
+        
+        # Filter by date range if provided
+        if start_date or end_date:
+            filtered_logs = []
+            start_dt = datetime.fromisoformat(start_date) if start_date else datetime.min
+            end_dt = datetime.fromisoformat(end_date) if end_date else datetime.max
+            
+            for log in logs:
+                try:
+                    log_dt = datetime.fromisoformat(log['timestamp'])
+                    if start_dt <= log_dt <= end_dt:
+                        filtered_logs.append(log)
+                except (KeyError, ValueError):
+                    continue
+            logs = filtered_logs
+
+        # Sort logs by timestamp descending (newest first)
+        try:
+            logs.sort(key=lambda log: datetime.fromisoformat(log['timestamp']), reverse=True)
+        except Exception as e:
+            app.logger.error(f"Error sorting logs: {e}")
+
+        # Apply pagination
+        total_logs = len(logs)
+        paginated_logs = logs[offset:offset + limit]
+        
+        return jsonify({
+            'status': 'success',
+            'data': paginated_logs,
+            'pagination': {
+                'total': total_logs,
+                'limit': limit,
+                'offset': offset,
+                'has_more': (offset + limit) < total_logs
+            }
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error fetching logs: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/login', methods=['POST'])
+@cross_origin()
+def api_login():
+    # Handle preflight OPTIONS request
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        return response
+        
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({'status': 'error', 'message': 'Username and password are required'}), 400
+    
+    username = data['username']
+    password = data['password']
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get user from database
+        cursor.execute('SELECT * FROM Users WHERE username = %s', (username,))
+        user = cursor.fetchone()
+        
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            # Return success response with user data (excluding password)
+            user_data = {k: v for k, v in user.items() if k != 'password'}
+            return jsonify({
+                'status': 'success',
+                'message': 'Login successful',
+                'user': user_data
+            })
+        else:
+            return jsonify({'status': 'error', 'message': 'Invalid username or password'}), 401
+            
+    except mysql.connector.Error as err:
+        print(f"Database error: {err}")
+        return jsonify({'status': 'error', 'message': 'Database error occurred'}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 # Logout route
 @app.route('/logout')

@@ -658,5 +658,38 @@
       "Toluen": "0.01",
       "Acetone": "0.01"
     }
+  },
+  {
+    "timestamp": "2025-06-25T04:46:35.552572",
+    "data": {
+      "CO2": "",
+      "Alcohol": "",
+      "CO": "",
+      "NH4": "",
+      "Toluen": "",
+      "Acetone": ""
+    }
+  },
+  {
+    "timestamp": "2025-06-25T04:49:11.880937",
+    "data": {
+      "CO2": "",
+      "Alcohol": "",
+      "CO": "",
+      "NH4": "",
+      "Toluen": "",
+      "Acetone": ""
+    }
+  },
+  {
+    "timestamp": "2025-06-25T04:52:02.650965",
+    "data": {
+      "CO2": "",
+      "Alcohol": "",
+      "CO": "",
+      "NH4": "",
+      "Toluen": "",
+      "Acetone": ""
+    }
   }
 ]

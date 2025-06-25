@@ -1,5 +1,6 @@
 Flask
 Flask-SocketIO
+Flask-CORS
 paho-mqtt
 mysql-connector-python
 bcrypt
